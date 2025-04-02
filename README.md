@@ -17,3 +17,5 @@ TO RESEARCH:
    ----------------------------------------------
    Resources:
    1. MySQL Installation URL:  https://www.youtube.com/watch?v=7S_tz1z_5bA
+   2. Video explaining Password hashing method: https://www.youtube.com/watch?v=ef3kenC4xa0
+      
