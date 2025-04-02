@@ -7,6 +7,7 @@ TO RESEARCH:
 2. Java Hashing methods (use Java.security library to  hash password string with SHA - 256)
 3. Logging API to create log of critical actions (login attempts, product modifications, purchase transactions etc.)
 4. JDBC Transactions: How to use connection.set AutoCommit(false)
+   
    -----------------------------------------------------------------
   SQL DATABASE
 1. Prep Statements for secure SQL Queries
