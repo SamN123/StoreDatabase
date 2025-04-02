@@ -2,7 +2,7 @@
 A strore database Java application manages transactions using an external MySQL Database (ADD AS NEEDED)
 --------------------------------------------------------------------------------
 TO RESEARCH: 
-  (JAVA APP) 
+  (JAVA APPLICATION) 
 1. Java Database Connectivity Library
 2. Java Hashing methods (use Java.security library to  hash password string with SHA - 256)
 3. Logging API to create log of critical actions (login attempts, product modifications, purchase transactions etc.)
