@@ -12,4 +12,8 @@ TO RESEARCH:
 1. Prep Statements for secure SQL Queries
 2. Optimized Queries (joins, groupby, indexing, limits)
 3. Set triggers for validating negative check price
-4. Set up table with hashed password storage in database (password table) 
+4. Set up table with hashed password storage in database (password table)
+
+   ----------------------------------------------
+   Resources:
+   1. MySQL Installation URL:  https://www.youtube.com/watch?v=7S_tz1z_5bA
