@@ -1,5 +1,5 @@
 # StoreDatabase
-A strore database Java application manages transactions using an external MySQL Database (ADD AS NEEDED)
+A store database Java application manages transactions using an external MySQL Database (ADD AS NEEDED)
 --------------------------------------------------------------------------------
 TO RESEARCH: 
   (JAVA APPLICATION) 
