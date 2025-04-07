@@ -20,5 +20,5 @@ public class Product {
     // Setters (Insert as needed as project progresses)
 
     @Override
-    public String toString() { return id + " | " + name + " | $" + price + " | Quantity: " + quantity; }
+    return String.format("ID: %s | Name: %s | Price: $%.2f | Quantity: %d", id, name, price, quantity);
 }
