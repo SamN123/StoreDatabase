@@ -20,5 +20,7 @@ public class Purchase {
     // Setters (Add as project needs demand)
 
     @Override
-    public String toString() { return id + " | " + prodID + " | " + perID + " x" + quantity + " | " + date; }
+    public String toString() {
+        return String.format("PurchaseID: %d | CustomerID: %d | ProductID: %s | Quantity: %d | Date: %s", id, perID, prodID, quantity, date);
+    }
 }
