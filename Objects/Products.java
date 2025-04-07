@@ -11,15 +11,14 @@ public class Product {
         this.quantity = productQuantity;
     }
 
-    public int getId() {
-        return id;
-    }
-    public String getName() {
-        return name;
-    }
+    // Getters
+    public int getId() { return id; }
+    public String getName() { return name;}
     public int getPrice() { return price; }
     public int getQuantity() { return quantity; }
 
+    // Setters (Insert as needed as project progresses)
+    
     @Override
     public String toString() { return "Insert string here depending on project needs."; }
 }
