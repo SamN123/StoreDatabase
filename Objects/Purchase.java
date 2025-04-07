@@ -13,16 +13,14 @@ public class Purchase {
         this.quantity = purchaseQuantity;
     }
 
-    public int getId() {
-        return id;
-    }
-    public String getName() {
-        return name;
-    }
+    public int getId() { return id; }
+    public String getName() { return name; }
     public int getPrice() { return price; }
     public String getDate() { return date; }
     public int getQuantity() { return quantity; }
 
+    // Setters (Add as project needs demand)
+    
     @Override
     public String toString() { return "Insert string here depending on project needs."; }
 }
