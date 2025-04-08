@@ -5,7 +5,7 @@ public class CompleteTransactions {
     // Database connection details
     private static final String DB_URL = "jdbc:mysql://localhost:3306/storedb";
     private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "password"; // Ask about database connection. Cloud Computing?
+    private static final String DB_PASSWORD = "password";
 
     private static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
