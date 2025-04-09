@@ -1,3 +1,5 @@
+package src.Objects;
+
 public class Purchase {
     private int id;
     private int perID;

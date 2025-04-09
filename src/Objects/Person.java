@@ -1,3 +1,5 @@
+package src.Objects;
+
 public class Person {
     // attributes created with proper datatypes to match/validate data accessed
     // from persons table from database

@@ -1,3 +1,5 @@
+package src.Objects;
+
 public class Product {
     private String id;
     private String name;
@@ -20,5 +22,7 @@ public class Product {
     // Setters (Insert as needed as project progresses)
 
     @Override
-    return String.format("ID: %s | Name: %s | Price: $%.2f | Quantity: %d", id, name, price, quantity);
+    public String toString() {
+        return String.format("ID: %s | Name: %s | Price: $%.2f | Quantity: %d", id, name, price, quantity);
+    }
 }

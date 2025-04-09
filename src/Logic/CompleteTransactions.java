@@ -1,3 +1,5 @@
+package src.Logic;
+
 import java.sql.*;
 
 public class CompleteTransactions {

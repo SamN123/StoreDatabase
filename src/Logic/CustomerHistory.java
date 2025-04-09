@@ -1,3 +1,6 @@
+package src.Logic;
+
+import src.Objects.*;
 import java.sql.*;
 
 // Logic Class used to handle operations and tasks for Customer History sub menu
