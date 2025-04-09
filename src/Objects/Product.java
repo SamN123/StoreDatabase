@@ -6,6 +6,8 @@ public class Product {
     private double price;
     private int quantity;
 
+    public Product() { }
+
     public Product (String productId, String productName, double productPrice, int productQuantity) {
         this.id = productId;
         this.name = productName;
@@ -20,6 +22,10 @@ public class Product {
     public int getQuantity() { return quantity; }
 
     // Setters (Insert as needed as project progresses)
+    public void setId(String id) { this.id = id; }
+    public void setName(String name) { this.name = name; }
+    public void setPrice(double price) { this.price = price; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
 
     @Override
     public String toString() {

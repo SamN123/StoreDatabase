@@ -1,3 +1,6 @@
+package src.Logic;
+
+import src.Objects.*;
 import java.sql.*;
 import java.util.Scanner;
 
@@ -10,7 +13,6 @@ public class StoreDatabaseApp {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         boolean running = true;
-        Products Products = new Products(DB_URL, DB_USER, DB_PASSWORD);
 
         while (running) {
             System.out.println("Welcome to Product Management System");
@@ -23,9 +25,9 @@ public class StoreDatabaseApp {
             int choice = scanner.nextInt();
 
             switch (choice) {
-                case 1 -> Products.manageProducts(scanner);
-//                    case 2 -> completeTransactions(scanner);
-//                    case 3 -> viewCustomerHistory(scanner);
+                case 1 -> ManageProducts.manageProducts(scanner);
+//                    case 2 -> CompleteTransactions(scanner);
+//                    case 3 -> CustomerHistory(scanner);
                 case 4 -> {
                     System.out.println("Exiting the application. Goodbye!");
                     running = false;
