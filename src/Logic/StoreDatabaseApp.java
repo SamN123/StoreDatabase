@@ -12,6 +12,10 @@ public class StoreDatabaseApp {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
+        ManageProducts.setConnectionInfo(DB_URL, DB_USER, DB_PASSWORD);
+        CompleteTransactions.setConnectionInfo(DB_URL, DB_USER, DB_PASSWORD);
+        CustomerHistory customers = new CustomerHistory(); // Ask about connection info procedure
+
         boolean running = true;
 
         while (running) {
@@ -26,8 +30,8 @@ public class StoreDatabaseApp {
 
             switch (choice) {
                 case 1 -> ManageProducts.manageProducts(scanner);
-//                    case 2 -> CompleteTransactions(scanner);
-//                    case 3 -> CustomerHistory(scanner);
+                case 2 -> CompleteTransactions.TransactionMenu(scanner);
+                //case 3 -> CustomerHistory(scanner); Ask about completion
                 case 4 -> {
                     System.out.println("Exiting the application. Goodbye!");
                     running = false;
