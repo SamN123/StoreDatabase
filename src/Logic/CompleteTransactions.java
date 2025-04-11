@@ -1,32 +1,95 @@
 package src.Logic;
 
 import java.sql.*;
+import java.util.Scanner;
 
 public class CompleteTransactions {
 
     // Database connection details
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/storedb";
-    private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "password";
+    private static String DB_URL;
+    private static String DB_USER;
+    private static String DB_PASSWORD;
+
+    public static void setConnectionInfo(String url, String user, String password) {
+        DB_URL = url;
+        DB_USER = user;
+        DB_PASSWORD = password;
+    }
 
     private static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+    }
+
+    public static void TransactionMenu(Scanner scanner) {
+        boolean inTransactionMenu = true;
+
+        while (inTransactionMenu) {
+            System.out.println("\n--- Complete Transactions ---");
+            System.out.println("1. Add a New Client");
+            System.out.println("2. Make a Purchase");
+            System.out.println("3. View Customer Purchase History");
+            System.out.println("4. Return to Main Menu");
+            System.out.print("Enter your choice: ");
+
+            int choice = scanner.nextInt();
+
+            switch (choice) {
+                case 1 -> {
+                    scanner.nextLine();
+                    System.out.print("First Name: ");
+                    String fname = scanner.nextLine();
+                    System.out.print("Last Name: ");
+                    String lname = scanner.nextLine();
+                    System.out.print("Email: ");
+                    String email = scanner.nextLine();
+                    System.out.print("Phone (XXX-XXX-XXXX): ");
+                    String phone = scanner.nextLine();
+                    addClient(fname, lname, email, phone);
+                }
+                case 2 -> {
+                    System.out.print("Enter Customer ID: ");
+                    int customerId = scanner.nextInt();
+                    System.out.print("Enter Product ID: ");
+                    String productId = scanner.next();
+                    System.out.print("Enter Quantity: ");
+                    int quantity = scanner.nextInt();
+                    makePurchase(customerId, productId, quantity);
+                }
+                case 3 -> {
+                    System.out.print("Enter Customer ID: ");
+                    int customerId = scanner.nextInt();
+                    viewCustomerHistory(customerId);
+                }
+                case 4 -> inTransactionMenu = false;
+                default -> System.out.println("Invalid choice!");
+            }
+        }
     }
 
     // Adds a new client to the Persons table (ADD EMAIL VERIFICATION LATER?)
     public static void addClient(String fname, String lname, String email, String phone) {
         try (Connection conn = getConnection()) {
             String sql = "INSERT INTO Persons (FName, LName, Email, Phone) VALUES (?, ?, ?, ?)";
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setString(1, fname);
                 stmt.setString(2, lname);
                 stmt.setString(3, email);
                 stmt.setString(4, phone);
-                stmt.executeUpdate();
-                System.out.println("Client added successfully.");
+                int rowsAffected = stmt.executeUpdate();
+
+                if (rowsAffected > 0) {
+                    try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            int personId = generatedKeys.getInt(1);
+                            System.out.println("Client added successfully.");
+                            System.out.println("Assigned Person ID: " + personId);
+                            System.out.println("Please use this ID when making a purchase.");
+                        }
+                    }
+                }
             }
         } catch (SQLIntegrityConstraintViolationException e) {
-            System.out.println("Email already exists.");
+            System.out.println("Error: Email already exists.");
         } catch (SQLException e) {
             System.out.println("Error adding client: " + e.getMessage());
         }
@@ -76,11 +139,12 @@ public class CompleteTransactions {
         }
     }
 
-    // Views purchase history for customer
     public static void viewCustomerHistory(int customerId) {
         try (Connection conn = getConnection()) {
-            String query = "SELECT pr.ItemName, pu.QuantityPurchased, pu.Date " +
+            // Updated query includes customer info
+            String query = "SELECT p.FName, p.LName, pr.ItemName, pu.QuantityPurchased, pu.Date " +
                     "FROM Purchase pu " +
+                    "JOIN Persons p ON pu.PersonID = p.PersonID " +
                     "JOIN Products pr ON pu.ProductID = pr.ProductID " +
                     "WHERE pu.PersonID = ? " +
                     "ORDER BY pu.Date DESC";
@@ -91,10 +155,14 @@ public class CompleteTransactions {
                     boolean hasData = false;
                     while (rs.next()) {
                         hasData = true;
-                        String name = rs.getString("ItemName");
+                        String firstName = rs.getString("FName");
+                        String lastName = rs.getString("LName");
+                        String itemName = rs.getString("ItemName");
                         int quantity = rs.getInt("QuantityPurchased");
                         Timestamp date = rs.getTimestamp("Date");
-                        System.out.printf("Product: %s | Quantity: %d | Date: %s%n", name, quantity, date.toString());
+
+                        System.out.printf("Customer: %s %s\nProduct: %s | Quantity: %d | Date: %s%n",
+                                firstName, lastName, itemName, quantity, date.toString());
                     }
                     if (!hasData) {
                         System.out.println("No purchase history found for this customer.");
@@ -105,4 +173,5 @@ public class CompleteTransactions {
             System.out.println("Error retrieving history: " + e.getMessage());
         }
     }
+
 }
