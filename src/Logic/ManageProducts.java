@@ -8,10 +8,16 @@ public class ManageProducts {
     private static String dbUser;
     private static String dbPassword;
 
-    public ManageProducts(String dbUrl, String dbUser, String dbPassword) {
+    /*public ManageProducts(String dbUrl, String dbUser, String dbPassword) {
         this.dbUrl = dbUrl;
         this.dbUser = dbUser;
         this.dbPassword = dbPassword;
+    }*/
+
+    public static void setConnectionInfo(String url, String user, String password) {
+        dbUrl = url;
+        dbUser = user;
+        dbPassword = password;
     }
 
     private static Connection getConnection() throws SQLException {
@@ -22,7 +28,7 @@ public class ManageProducts {
         boolean managing = true;
 
         while (managing) {
-            System.out.println("Managing Products...");
+            System.out.println("\n--- Manage Products ---");
             System.out.println("1. View Products");
             System.out.println("2. Add New Product");
             System.out.println("3. Modify Existing Product");
