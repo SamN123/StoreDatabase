@@ -1,5 +1,7 @@
-package src.logic
+package src.Logic;
     
+import src.Objects.*;
+
 import java.util.Scanner;
 import java.sql.*;
 import java.util.ArrayList;
