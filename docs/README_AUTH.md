@@ -13,13 +13,12 @@ This document describes the authentication and role-based access control (RBAC) 
    - two roles: ADMIN and USER
    - admins can:
      - manage products (add, modify, remove)
-     - add new clients
      - view all customer purchase history
-     - complete transactions
+     - perform administrative transaction operations
    - regular users can:
      - view products
-     - make purchases
-     - view their own purchase history
+     - complete transactions (make purchases)
+     - view customer history (with restrictions to their own history)
 
 3. **Security Utilities**
    - permission checking based on user roles

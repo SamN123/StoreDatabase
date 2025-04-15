@@ -205,6 +205,20 @@ public class OptimizedCustomerHistory {
                 return;
             }
             
+            // get current user for permission check
+            Person currentUser = src.Authentication.AuthenticationService.getCurrentUser();
+            
+            // check if user has permission to view this customer's history
+            // admins can view any customer's history, regular users can only view their own
+            if (!SecurityUtil.hasAdminPermission() && 
+                (currentUser == null || currentUser.getPersonID() != customerId)) {
+                Logger.log(Logger.WARNING, "Unauthorized attempt to view customer history for ID: " + 
+                          customerId + " by user ID: " + 
+                          (currentUser != null ? currentUser.getPersonID() : "unknown"));
+                System.out.println("Access denied. You can only view your own purchase history.");
+                return;
+            }
+            
             int page = 1;
             int pageSize = DEFAULT_PAGE_SIZE;
             boolean viewing = true;
@@ -339,6 +353,20 @@ public class OptimizedCustomerHistory {
             if (!customerExists(customerId)) {
                 Logger.log(Logger.WARNING, "Attempt to view summary for non-existent customer ID: " + customerId);
                 System.out.println("Error: Customer ID does not exist!");
+                return;
+            }
+            
+            // get current user for permission check
+            Person currentUser = src.Authentication.AuthenticationService.getCurrentUser();
+            
+            // check if user has permission to view this customer's summary
+            // admins can view any customer's summary, regular users can only view their own
+            if (!SecurityUtil.hasAdminPermission() && 
+                (currentUser == null || currentUser.getPersonID() != customerId)) {
+                Logger.log(Logger.WARNING, "Unauthorized attempt to view customer summary for ID: " + 
+                          customerId + " by user ID: " + 
+                          (currentUser != null ? currentUser.getPersonID() : "unknown"));
+                System.out.println("Access denied. You can only view your own purchase summary.");
                 return;
             }
             
