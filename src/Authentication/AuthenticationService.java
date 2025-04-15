@@ -26,6 +26,53 @@ public class AuthenticationService {
         dbUrl = url;
         dbUser = user;
         dbPassword = password;
+        
+        // ensure the database schema is updated for authentication
+        try {
+            updateDatabaseSchema();
+        } catch (SQLException e) {
+            System.err.println("Error updating database schema: " + e.getMessage());
+        }
+    }
+    
+    // updates the database schema to include authentication columns if they don't exist
+    private static void updateDatabaseSchema() throws SQLException {
+        try (Connection conn = getConnection()) {
+            // check if password column exists
+            boolean passwordColumnExists = false;
+            try (ResultSet rs = conn.getMetaData().getColumns(null, null, "Persons", "password")) {
+                passwordColumnExists = rs.next();
+            }
+            
+            // if password column doesn't exist, add the authentication columns
+            if (!passwordColumnExists) {
+                System.out.println("Updating database schema for authentication...");
+                
+                try (PreparedStatement stmt = conn.prepareStatement(
+                        "ALTER TABLE Persons " +
+                        "ADD COLUMN password VARCHAR(64) NOT NULL DEFAULT '', " +
+                        "ADD COLUMN salt VARCHAR(32) NOT NULL DEFAULT '', " +
+                        "ADD COLUMN role ENUM('USER', 'ADMIN') NOT NULL DEFAULT 'USER'")) {
+                    stmt.executeUpdate();
+                }
+                
+                // create a default admin user
+                try (PreparedStatement stmt = conn.prepareStatement(
+                        "INSERT INTO Persons (FName, LName, Email, Phone, password, salt, role) " +
+                        "VALUES ('Admin', 'User', 'admin@store.com', '000-000-0000', '', '', 'ADMIN') " +
+                        "ON DUPLICATE KEY UPDATE role = 'ADMIN'")) {
+                    stmt.executeUpdate();
+                }
+                
+                // update existing users to have the USER role
+                try (PreparedStatement stmt = conn.prepareStatement(
+                        "UPDATE Persons SET role = 'USER' WHERE Email != 'admin@store.com'")) {
+                    stmt.executeUpdate();
+                }
+                
+                System.out.println("Database schema updated successfully.");
+            }
+        }
     }
 
     // gets a database connection
