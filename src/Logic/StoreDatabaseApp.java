@@ -6,6 +6,7 @@ import src.Authentication.LoginScreen;
 import src.Security.SecurityUtil;
 import src.Util.ErrorHandler;
 import src.Util.Logger;
+import src.Util.ThreadManager;
 import java.sql.*;
 import java.util.InputMismatchException;
 import java.util.Scanner;
@@ -128,6 +129,8 @@ public class StoreDatabaseApp {
         } finally {
             // ensure scanner is closed
             scanner.close();
+            // shutdown thread manager
+            ThreadManager.shutdown();
             Logger.log(Logger.INFO, "Application shutdown complete");
         }
     }

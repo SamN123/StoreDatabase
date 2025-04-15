@@ -1,12 +1,17 @@
 package src.Logic;
 
+import src.Objects.ProductData;
+import src.Objects.ProductPageData;
 import src.Security.SecurityUtil;
 import src.Util.ErrorHandler;
 import src.Util.Logger;
+import src.Util.ThreadManager;
 import src.Util.ValidationException;
 import java.sql.*;
 import java.util.InputMismatchException;
 import java.util.Scanner;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class OptimizedManageProducts {
     private static String dbUrl; // database url
@@ -82,7 +87,7 @@ public class OptimizedManageProducts {
         }
     }
 
-    // displays products with pagination
+    // displays products with pagination using background thread for data retrieval
     // @param scanner scanner for user input
     private static void viewProductsPaginated(Scanner scanner) {
         try {
@@ -93,126 +98,191 @@ public class OptimizedManageProducts {
             boolean viewing = true;
             
             while (viewing) {
-                try (Connection connection = getConnection();
-                     CallableStatement stmt = connection.prepareCall("{CALL GetPaginatedProducts(?, ?, ?, ?)}")) {
+                // show loading message
+                System.out.println("\nLoading products...");
+                
+                // use atomic boolean to track when data is ready
+                AtomicBoolean dataReady = new AtomicBoolean(false);
+                final int currentPage = page;
+                
+                // capture current sort settings for lambda
+                final String currentSortColumn = sortColumn;
+                final String currentSortDirection = sortDirection;
+                
+                // create a callable for the database operation
+                Callable<ProductPageData> dataTask = () -> {
+                    ProductPageData pageData = new ProductPageData();
                     
-                    // set parameters for the stored procedure
-                    stmt.setInt(1, page);
-                    stmt.setInt(2, pageSize);
-                    stmt.setString(3, sortColumn);
-                    stmt.setString(4, sortDirection);
-                    
-                    Logger.log(Logger.INFO, "Retrieving products page " + page + 
-                              " (sort: " + sortColumn + " " + sortDirection + ")");
-                    
-                    boolean hasResults = stmt.execute();
-                    int totalProducts = 0;
-                    
-                    if (hasResults) {
-                        // display products
-                        try (ResultSet rs = stmt.getResultSet()) {
-                            System.out.println("\n--- Products (Page " + page + ") ---");
-                            System.out.printf("%-10s %-30s %-10s %-10s%n", 
-                                    "ID", "Name", "Price", "Quantity");
-                            System.out.println("------------------------------------------------------");
-                            
-                            boolean hasProducts = false;
-                            int count = 0;
-                            
-                            while (rs.next()) {
-                                hasProducts = true;
-                                count++;
-                                
-                                // format and display each product
-                                System.out.printf("%-10s %-30s $%-9.2f %-10d%n",
+                    try (Connection connection = getConnection();
+                         CallableStatement stmt = connection.prepareCall("{CALL GetPaginatedProducts(?, ?, ?, ?)}")) {
+                        
+                        // set parameters for the stored procedure
+                        stmt.setInt(1, currentPage);
+                        stmt.setInt(2, pageSize);
+                        stmt.setString(3, currentSortColumn);
+                        stmt.setString(4, currentSortDirection);
+                        
+                        Logger.log(Logger.INFO, "Retrieving products page " + currentPage + 
+                                  " (sort: " + currentSortColumn + " " + currentSortDirection + ")");
+                        
+                        boolean hasResults = stmt.execute();
+                        
+                        if (hasResults) {
+                            // get products
+                            try (ResultSet rs = stmt.getResultSet()) {
+                                while (rs.next()) {
+                                    pageData.addProduct(
                                         rs.getString("ProductID"),
                                         rs.getString("ItemName"),
                                         rs.getDouble("ItemPrice"),
-                                        rs.getInt("ItemQuantity"));
+                                        rs.getInt("ItemQuantity")
+                                    );
+                                }
                             }
                             
-                            if (!hasProducts) {
-                                System.out.println("No products found on this page.");
-                            } else {
-                                System.out.println("------------------------------------------------------");
-                                System.out.println("Showing " + count + " products");
-                            }
-                        }
-                        
-                        // get total count for pagination
-                        if (stmt.getMoreResults()) {
-                            try (ResultSet countRs = stmt.getResultSet()) {
-                                if (countRs.next()) {
-                                    totalProducts = countRs.getInt("TotalProducts");
-                                    int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
-                                    System.out.println("Page " + page + " of " + totalPages + 
-                                                     " (Total products: " + totalProducts + ")");
+                            // get total count for pagination
+                            if (stmt.getMoreResults()) {
+                                try (ResultSet countRs = stmt.getResultSet()) {
+                                    if (countRs.next()) {
+                                        pageData.setTotalProducts(countRs.getInt("TotalProducts"));
+                                    }
                                 }
                             }
                         }
                     }
                     
-                    // pagination menu
-                    System.out.println("\n--- Navigation ---");
-                    System.out.println("1. Next Page");
-                    System.out.println("2. Previous Page");
-                    System.out.println("3. Change Sort Order");
-                    System.out.println("4. Return to Product Menu");
-                    System.out.print("Enter your choice: ");
-                    
-                    int navChoice = scanner.nextInt();
-                    scanner.nextLine(); // consume newline
-                    
-                    switch (navChoice) {
-                        case 1 -> {
-                            // calculate total pages
-                            int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
-                            if (page < totalPages) {
-                                page++;
-                            } else {
-                                System.out.println("Already on the last page.");
-                            }
-                        }
-                        case 2 -> {
-                            if (page > 1) {
-                                page--;
-                            } else {
-                                System.out.println("Already on the first page.");
-                            }
-                        }
-                        case 3 -> {
-                            // change sort order
-                            System.out.println("\n--- Sort By ---");
-                            System.out.println("1. Product ID");
-                            System.out.println("2. Product Name");
-                            System.out.println("3. Price");
-                            System.out.println("4. Quantity");
-                            System.out.print("Enter your choice: ");
-                            
-                            int sortChoice = scanner.nextInt();
-                            scanner.nextLine(); // consume newline
-                            
-                            switch (sortChoice) {
-                                case 1 -> sortColumn = "ProductID";
-                                case 2 -> sortColumn = "ItemName";
-                                case 3 -> sortColumn = "ItemPrice";
-                                case 4 -> sortColumn = "ItemQuantity";
-                                default -> System.out.println("Invalid choice. Using default sort.");
+                    return pageData;
+                };
+                
+                // execute the database operation in a background thread
+                ThreadManager.executeAsync(
+                    dataTask,
+                    // success callback
+                    pageData -> {
+                        // display products
+                        System.out.println("\n--- Products (Page " + currentPage + ") ---");
+                        System.out.printf("%-10s %-30s %-10s %-10s%n", 
+                                "ID", "Name", "Price", "Quantity");
+                        System.out.println("------------------------------------------------------");
+                        
+                        if (pageData.getProductCount() == 0) {
+                            System.out.println("No products found on this page.");
+                        } else {
+                            for (ProductData product : pageData.getProducts()) {
+                                System.out.printf("%-10s %-30s $%-9.2f %-10d%n",
+                                    product.id,
+                                    product.name,
+                                    product.price,
+                                    product.quantity);
                             }
                             
-                            System.out.println("\n--- Sort Direction ---");
-                            System.out.println("1. Ascending");
-                            System.out.println("2. Descending");
-                            System.out.print("Enter your choice: ");
-                            
-                            int dirChoice = scanner.nextInt();
-                            scanner.nextLine(); // consume newline
-                            
-                            sortDirection = (dirChoice == 2) ? "DESC" : "ASC";
+                            System.out.println("------------------------------------------------------");
+                            System.out.println("Showing " + pageData.getProductCount() + " products");
                         }
-                        case 4 -> viewing = false; // return to product menu
-                        default -> System.out.println("Invalid choice!");
+                        
+                        // display pagination info
+                        int totalProducts = pageData.getTotalProducts();
+                        int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
+                        System.out.println("Page " + currentPage + " of " + totalPages + 
+                                         " (Total products: " + totalProducts + ")");
+                        
+                        // signal that data is ready
+                        dataReady.set(true);
+                    },
+                    // error callback
+                    e -> {
+                        System.err.println("Error retrieving products: " + e.getMessage());
+                        dataReady.set(true);
                     }
+                );
+                
+                // wait for data to be ready (simple polling)
+                while (!dataReady.get()) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+                
+                // store total products for navigation
+                int totalProducts = 0;
+                try (Connection connection = getConnection();
+                     PreparedStatement stmt = connection.prepareStatement("SELECT COUNT(*) AS TotalProducts FROM Products")) {
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            totalProducts = rs.getInt("TotalProducts");
+                        }
+                    }
+                }
+                    
+                // pagination menu
+                System.out.println("\n--- Navigation ---");
+                System.out.println("1. Next Page");
+                System.out.println("2. Previous Page");
+                System.out.println("3. Change Sort Order");
+                System.out.println("4. Return to Product Menu");
+                System.out.print("Enter your choice: ");
+                
+                int navChoice = scanner.nextInt();
+                scanner.nextLine(); // consume newline
+                
+                switch (navChoice) {
+                    case 1 -> {
+                        // calculate total pages
+                        int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
+                        if (page < totalPages) {
+                            page++;
+                        } else {
+                            System.out.println("Already on the last page.");
+                        }
+                    }
+                    case 2 -> {
+                        if (page > 1) {
+                            page--;
+                        } else {
+                            System.out.println("Already on the first page.");
+                        }
+                    }
+                    case 3 -> {
+                        // change sort order
+                        System.out.println("\n--- Sort By ---");
+                        System.out.println("1. Product ID");
+                        System.out.println("2. Product Name");
+                        System.out.println("3. Price");
+                        System.out.println("4. Quantity");
+                        System.out.print("Enter your choice: ");
+                        
+                        int sortChoice = scanner.nextInt();
+                        scanner.nextLine(); // consume newline
+                        
+                        // create final variables for lambda capture
+                        final String newSortColumn;
+                        switch (sortChoice) {
+                            case 1 -> newSortColumn = "ProductID";
+                            case 2 -> newSortColumn = "ItemName";
+                            case 3 -> newSortColumn = "ItemPrice";
+                            case 4 -> newSortColumn = "ItemQuantity";
+                            default -> {
+                                System.out.println("Invalid choice. Using default sort.");
+                                newSortColumn = "ProductID";
+                            }
+                        }
+                        sortColumn = newSortColumn;
+                        
+                        System.out.println("\n--- Sort Direction ---");
+                        System.out.println("1. Ascending");
+                        System.out.println("2. Descending");
+                        System.out.print("Enter your choice: ");
+                        
+                        int dirChoice = scanner.nextInt();
+                        scanner.nextLine(); // consume newline
+                        
+                        final String newSortDirection = (dirChoice == 2) ? "DESC" : "ASC";
+                        sortDirection = newSortDirection;
+                    }
+                    case 4 -> viewing = false; // return to product menu
+                    default -> System.out.println("Invalid choice!");
                 }
             }
         } catch (InputMismatchException e) {
