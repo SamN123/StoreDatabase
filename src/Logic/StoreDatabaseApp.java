@@ -25,9 +25,9 @@ public class StoreDatabaseApp {
             Logger.log(Logger.INFO, "Starting Store Database Management System");
             
             // set connection info for all services
-            ManageProducts.setConnectionInfo(DB_URL, DB_USER, DB_PASSWORD);
-            CompleteTransactions.setConnectionInfo(DB_URL, DB_USER, DB_PASSWORD);
-            CustomerHistory.setConnectionInfo(DB_URL, DB_USER, DB_PASSWORD);
+            OptimizedManageProducts.setConnectionInfo(DB_URL, DB_USER, DB_PASSWORD);
+            OptimizedCompleteTransactions.setConnectionInfo(DB_URL, DB_USER, DB_PASSWORD);
+            OptimizedCustomerHistory.setConnectionInfo(DB_URL, DB_USER, DB_PASSWORD);
             AuthenticationService.setConnectionInfo(DB_URL, DB_USER, DB_PASSWORD);
 
             System.out.println("Welcome to Store Database Management System");
@@ -67,7 +67,7 @@ public class StoreDatabaseApp {
                             // only admins can manage products
                             if (SecurityUtil.hasAdminPermission()) {
                                 Logger.logUserAction(currentUser.getPersonID(), "Access", "Accessed product management");
-                                ManageProducts.manageProducts(scanner);
+                                OptimizedManageProducts.manageProducts(scanner);
                             } else {
                                 Logger.log(Logger.WARNING, "Unauthorized access attempt to product management by user " + currentUser.getPersonID());
                                 System.out.println("Access denied. Admin privileges required.");
@@ -75,11 +75,11 @@ public class StoreDatabaseApp {
                         }
                         case 2 -> {
                             Logger.logUserAction(currentUser.getPersonID(), "Access", "Accessed transactions menu");
-                            CompleteTransactions.TransactionMenu(scanner);
+                            OptimizedCompleteTransactions.TransactionMenu(scanner);
                         }
                         case 3 -> {
                             Logger.logUserAction(currentUser.getPersonID(), "Access", "Accessed customer history");
-                            CustomerHistory.customerHistoryMenu(scanner);
+                            OptimizedCustomerHistory.customerHistoryMenu(scanner);
                         }
                         case 4 -> {
                             // logout and show login screen again
