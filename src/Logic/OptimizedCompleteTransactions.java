@@ -52,9 +52,10 @@ public class OptimizedCompleteTransactions {
                 System.out.println("1. Add a New Client" + (SecurityUtil.hasAdminPermission() ? "" : " (Admin Only)"));
                 System.out.println("2. Search for Products");
                 System.out.println("3. Make a Purchase");
-                System.out.println("4. View Customer Purchase History");
-                System.out.println("5. View Customer Purchase Summary");
-                System.out.println("6. Return to Main Menu");
+                System.out.println("4. Find My Customer ID");
+                System.out.println("5. View Customer Purchase History");
+                System.out.println("6. View Customer Purchase Summary");
+                System.out.println("7. Return to Main Menu");
                 System.out.print("Enter your choice: ");
 
                 int choice = scanner.nextInt();
@@ -79,6 +80,10 @@ public class OptimizedCompleteTransactions {
                         makePurchaseWithProductSearch(scanner);
                     }
                     case 4 -> {
+                        // find customer ID by email
+                        findCustomerIDByEmail(scanner);
+                    }
+                    case 5 -> {
                         // view customer purchase history
                         System.out.print("Enter Customer ID: ");
                         int customerId = scanner.nextInt();
@@ -86,7 +91,7 @@ public class OptimizedCompleteTransactions {
                         // use OptimizedCustomerHistory method
                         OptimizedCustomerHistory.viewCustomerPurchaseHistory(scanner, customerId);
                     }
-                    case 5 -> {
+                    case 6 -> {
                         // view customer purchase summary
                         System.out.print("Enter Customer ID: ");
                         int customerId = scanner.nextInt();
@@ -94,7 +99,7 @@ public class OptimizedCompleteTransactions {
                         // use OptimizedCustomerHistory method
                         OptimizedCustomerHistory.viewCustomerPurchaseSummary(customerId);
                     }
-                    case 6 -> inTransactionMenu = false; // return to main menu
+                    case 7 -> inTransactionMenu = false; // return to main menu
                     default -> {
                         Logger.log(Logger.WARNING, "Invalid menu choice: " + choice);
                         System.out.println("Invalid choice!");
@@ -585,4 +590,60 @@ public class OptimizedCompleteTransactions {
         }
     }
     
+    // find customer ID by email
+    // @param scanner scanner for user input
+    private static void findCustomerIDByEmail(Scanner scanner) {
+        try {
+            System.out.println("\n--- Find My Customer ID ---");
+            System.out.print("Enter your email address: ");
+            String email = scanner.nextLine().trim();
+            
+            // validate email
+            if (email == null || email.trim().isEmpty()) {
+                throw new ValidationException("Email cannot be empty", "Email");
+            }
+            
+            // validate email format
+            if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+                throw new ValidationException("Invalid email format", "Email");
+            }
+            
+            Logger.log(Logger.INFO, "Looking up customer ID for email: " + email);
+            
+            try (Connection conn = getConnection();
+                 CallableStatement stmt = conn.prepareCall("{CALL FindMyCustomerID(?)}")) {
+                
+                stmt.setString(1, email);
+                
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        // check if we got a message (no customer found)
+                        if (rs.getMetaData().getColumnCount() == 1 && rs.getMetaData().getColumnName(1).equals("Message")) {
+                            System.out.println(rs.getString("Message"));
+                        } else {
+                            // display customer information
+                            System.out.println("\n--- Customer Information ---");
+                            System.out.println("Customer ID: " + rs.getInt("PersonID"));
+                            System.out.println("Name: " + rs.getString("FName") + " " + rs.getString("LName"));
+                            System.out.println("Email: " + rs.getString("Email"));
+                            System.out.println("Phone: " + rs.getString("Phone"));
+                            
+                            Logger.log(Logger.INFO, "Customer ID found for email " + email + ": " + rs.getInt("PersonID"));
+                        }
+                    } else {
+                        System.out.println("No customer found with this email address.");
+                    }
+                }
+            }
+        } catch (ValidationException e) {
+            String errorMessage = ErrorHandler.handleValidationException(e, e.getField());
+            System.err.println(errorMessage);
+        } catch (SQLException e) {
+            String errorMessage = ErrorHandler.handleSQLException(e, "finding customer ID");
+            System.err.println(errorMessage);
+        } catch (Exception e) {
+            String errorMessage = ErrorHandler.handleException(e, "finding customer ID");
+            System.err.println(errorMessage);
+        }
+    }
 }
