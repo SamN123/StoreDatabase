@@ -21,6 +21,10 @@ A Java application for managing a store database with features for product manag
   - **Security/**: Security utility classes
   - **Util/**: Utility classes
 
+- **setup/**: Database setup utilities
+  - **setup_database.java**: Java launcher for the database setup utility
+  - **setup_database.class**: Compiled launcher class
+
 - **sql/**: SQL scripts for database setup
   - **schema/**: Database schema definition
   - **auth/**: Authentication-related scripts
@@ -38,23 +42,43 @@ A Java application for managing a store database with features for product manag
     - **README_SETUP.md**: Detailed setup instructions
     - **SETUP_GUIDE.md**: Comprehensive setup guide
 
-- **scripts/**: Utility scripts
-  - **setup_all.sh**: Database setup script
 
 ## Setup Instructions
 
 For a complete setup of the database and application:
 
-1. **Quick Setup**: Use the provided setup script:
+1. **Quick Setup**: Use the Java-based setup utility:
    
-   ```bash
-   ./scripts/setup_all.sh
+   ```
+   java -cp ".;lib/mysql-connector-j-9.1.0.jar;setup" setup_database
    ```
    
-   This script will:
-   - Automatically detect your MySQL installation
+   Or on Unix/macOS:
+   ```
+   java -cp ".:lib/mysql-connector-j-9.1.0.jar:setup" setup_database
+   ```
+   
+   Alternatively, you can run the DatabaseSetup class directly:
+   
+   ```
+   java -cp .;lib/mysql-connector-j-9.1.0.jar src.Util.DatabaseSetup
+   ```
+   
+   Or on Unix/macOS:
+   ```
+   java -cp .:lib/mysql-connector-j-9.1.0.jar src.Util.DatabaseSetup
+   ```
+   
+   This Java-based setup will:
+   - Connect to your MySQL database using JDBC (Java Database Connectivity)
+   - Automatically load the MySQL JDBC driver
+   - Automatically find the MySQL command-line client in common locations
+   - Execute SQL scripts using the MySQL command-line client
    - Guide you through setting up the entire database with all necessary objects
+   - Provide detailed feedback on each step of the process
    - Work on any platform (Windows, macOS, Linux)
+   
+   > **Note**: This setup utility requires the MySQL command-line client to be installed, but it will automatically find it in common locations.
 
 2. **Detailed Setup**: See the following documentation:
    - [Setup Guide](docs/setup/SETUP_GUIDE.md) - Comprehensive step-by-step setup guide

@@ -5,55 +5,67 @@ This guide provides step-by-step instructions to set up the entire database with
 ## Prerequisites
 
 - MySQL installed and running
-- MySQL command-line client (required for the setup script) or a GUI client (like MySQL Workbench, DBeaver, etc.)
+- Java Runtime Environment (JRE) 8 or higher
 - Access to the database with appropriate permissions
 
-> **Note**: The setup script (`scripts/setup_all.sh`) requires the MySQL command-line client to be installed. The script will automatically detect your MySQL installation. If you don't have the MySQL command-line client installed, you can use one of the alternative setup methods described below.
+## Java-based Setup (Recommended)
 
-## Step 1: Create the Database Schema
+The easiest way to set up everything is to use the provided Java setup utility:
 
-First, create the basic database schema with tables:
-
-```bash
-mysql -u root -p < sql/schema/StoreDB.sql
+```
+java -cp ".;lib/mysql-connector-j-9.1.0.jar;setup" setup_database
 ```
 
-This will:
-- Create the StoreDB database if it doesn't exist
-- Create the Persons, Products, and Purchase tables
-- Create triggers for phone validation and inventory updates
-- Create the MakePurchase stored procedure
-- Create the RecentPurchases view
-- Insert sample data for testing
-
-## Step 2: Add Authentication Support
-
-Next, add authentication support to the database:
-
-```bash
-mysql -u root -p storedb < sql/auth/StoreDB_Auth.sql
+Or on Unix/macOS:
+```
+java -cp ".:lib/mysql-connector-j-9.1.0.jar:setup" setup_database
 ```
 
-This will:
-- Add password, salt, and role columns to the Persons table
-- Create a default admin user
-- Update existing users to have the USER role
+Alternatively, you can run the DatabaseSetup class directly:
 
-## Step 3: Create Missing Database Objects
-
-Finally, create all the additional stored procedures and views:
-
-```bash
-mysql -u root -p storedb < sql/setup/SetupMissingDatabaseObjects.sql
+```
+java -cp .;lib/mysql-connector-j-9.1.0.jar src.Util.DatabaseSetup
 ```
 
-This will create:
-- SearchProducts stored procedure
-- GetCustomerPurchaseHistory stored procedure
-- CustomerPurchaseSummary view
-- FindCustomerIDByEmail stored procedure
-- ListAllCustomers stored procedure
-- FindMyCustomerID stored procedure
+Or on Unix/macOS:
+```
+java -cp .:lib/mysql-connector-j-9.1.0.jar src.Util.DatabaseSetup
+```
+
+This Java-based setup uses JDBC (Java Database Connectivity) and the MySQL command-line client to:
+
+1. Create the database schema
+   - Connect to MySQL using JDBC driver
+   - Create the StoreDB database if it doesn't exist
+   - Automatically find the MySQL command-line client in common locations
+   - Execute SQL scripts using the MySQL command-line client
+   - Create the Persons, Products, and Purchase tables
+   - Create triggers for phone validation and inventory updates
+   - Create the MakePurchase stored procedure
+   - Create the RecentPurchases view
+   - Insert sample data for testing
+
+2. Add authentication support
+   - Establish secure JDBC connection to the database
+   - Execute SQL scripts using the MySQL command-line client
+   - Add password, salt, and role columns to the Persons table
+   - Create a default admin user
+   - Update existing users to have the USER role
+
+3. Create missing database objects
+   - Execute SQL scripts using the MySQL command-line client
+   - Create SearchProducts stored procedure
+   - Create GetCustomerPurchaseHistory stored procedure
+   - Create CustomerPurchaseSummary view
+   - Create FindCustomerIDByEmail stored procedure
+   - Create ListAllCustomers stored procedure
+   - Create FindMyCustomerID stored procedure
+
+4. Verify the setup
+   - Use JDBC metadata queries to verify all objects were created
+   - Display detailed information about created database objects
+
+> **Note**: This setup utility requires the MySQL command-line client to be installed, but it will automatically find it in common locations.
 
 ## Step 4: Verify the Setup
 
@@ -77,35 +89,20 @@ SHOW FULL TABLES IN storedb WHERE Table_type = 'VIEW';
 DESCRIBE storedb.Persons;
 ```
 
-## All-in-One Setup (Alternative)
+## Alternative Setup Methods
 
-### Option 1: Using the Setup Script
+### Option 1: Using MySQL Workbench or Another GUI Client
 
-The easiest way to set up everything is to use the provided setup script:
+1. Open your MySQL GUI client (MySQL Workbench, DBeaver, etc.)
+2. Connect to your database
+3. Execute the following SQL scripts in order:
+   - `sql/schema/StoreDB.sql`
+   - `sql/auth/StoreDB_Auth.sql`
+   - `sql/setup/SetupMissingDatabaseObjects.sql`
 
-```bash
-./scripts/setup_all.sh
-```
+### Option 2: Using the Java Application
 
-This script will:
-- Automatically detect your MySQL installation on any platform (Windows, macOS, Linux)
-- Guide you through the setup process with clear prompts
-- Ask for your MySQL username and password (password input will be hidden for security)
-- Execute all SQL scripts in the correct order
-- Verify that all database objects were created successfully
-- Provide feedback on each step of the process
-
-> **Note**: When entering your MySQL password, the input will be hidden (no characters will appear as you type) for security reasons. This is normal behavior.
-
-### Option 2: Manual All-in-One Command
-
-If you prefer to manually execute all scripts in one go, you can use this command:
-
-```bash
-cat sql/schema/StoreDB.sql sql/auth/StoreDB_Auth.sql sql/setup/SetupMissingDatabaseObjects.sql | mysql -u root -p
-```
-
-This will execute all three scripts in sequence.
+The application has been updated to automatically check for and create the necessary database objects when it starts. Simply run the application, and it will set up the required database objects if they don't exist.
 
 ## Troubleshooting
 

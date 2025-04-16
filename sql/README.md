@@ -28,33 +28,53 @@ This directory contains SQL scripts for setting up and maintaining the Store Dat
 
 ## Usage
 
-### Option 1: Using the Setup Script (Recommended)
+### Option 1: Using the Java Setup Utility (Recommended)
 
-The easiest way to set up everything is to use the provided setup script:
+The easiest way to set up everything is to use the provided Java setup utility:
 
-```bash
-./scripts/setup_all.sh
+```
+java -cp ".;lib/mysql-connector-j-9.1.0.jar;setup" setup_database
 ```
 
-This script will:
-- Automatically detect your MySQL installation on any platform (Windows, macOS, Linux)
+Or on Unix/macOS:
+```
+java -cp ".:lib/mysql-connector-j-9.1.0.jar:setup" setup_database
+```
+
+Alternatively, you can run the DatabaseSetup class directly:
+
+```
+java -cp .;lib/mysql-connector-j-9.1.0.jar src.Util.DatabaseSetup
+```
+
+Or on Unix/macOS:
+```
+java -cp .:lib/mysql-connector-j-9.1.0.jar src.Util.DatabaseSetup
+```
+
+This Java-based setup will:
+- Connect to your MySQL database using JDBC (Java Database Connectivity)
+- Automatically load the MySQL JDBC driver
+- Automatically find the MySQL command-line client in common locations
+- Execute SQL scripts using the MySQL command-line client
 - Guide you through the setup process with clear prompts
-- Ask for your MySQL username and password (password input will be hidden for security)
+- Ask for your MySQL connection details and credentials
 - Execute all SQL scripts in the correct order
-- Verify that all database objects were created successfully
-- Provide feedback on each step of the process
+- Verify that all database objects were created successfully using JDBC metadata queries
+- Provide detailed feedback on each step of the process
+
+> **Note**: This setup utility requires the MySQL command-line client to be installed, but it will automatically find it in common locations.
 
 > **Note**: When entering your MySQL password, the input will be hidden (no characters will appear as you type) for security reasons. This is normal behavior.
 
-### Option 2: Manual Setup
+### Option 2: Using MySQL Workbench or Another GUI Client
 
-To set up all database objects at once, use the main setup script:
-
-```
-mysql -u root -p storedb < sql/setup/SetupMissingDatabaseObjects.sql
-```
-
-Or you can run individual scripts as needed.
+1. Open your MySQL GUI client (MySQL Workbench, DBeaver, etc.)
+2. Connect to your database
+3. Execute the following SQL scripts in order:
+   - `sql/schema/StoreDB.sql`
+   - `sql/auth/StoreDB_Auth.sql`
+   - `sql/setup/SetupMissingDatabaseObjects.sql`
 
 For more detailed setup instructions, see:
 - [Setup Guide](../docs/setup/SETUP_GUIDE.md)

@@ -5,42 +5,51 @@ This document provides instructions for setting up the missing database objects 
 ## Prerequisites
 
 - MySQL installed and running
-- MySQL command-line client (required for the setup script) or a GUI client (like MySQL Workbench, DBeaver, etc.)
+- Java Runtime Environment (JRE) 8 or higher
 - Access to the database with appropriate permissions
-
-> **Note**: The setup script (`scripts/setup_all.sh`) requires the MySQL command-line client to be installed. The script will automatically detect your MySQL installation. If you don't have the MySQL command-line client installed, you can use one of the alternative setup methods described below.
 
 ## Setting Up Missing Database Objects
 
 The application requires several stored procedures and views that may not be present in your database. Follow these steps to set them up:
 
-### Option 1: Using the Setup Script (Recommended)
+### Option 1: Using the Java Setup Utility (Recommended)
 
-The easiest way to set up everything is to use the provided setup script:
+The easiest way to set up everything is to use the provided Java setup utility:
 
-```bash
-./scripts/setup_all.sh
+```
+java -cp ".;lib/mysql-connector-j-9.1.0.jar;setup" setup_database
 ```
 
-This script will:
-- Automatically detect your MySQL installation on any platform (Windows, macOS, Linux)
+Or on Unix/macOS:
+```
+java -cp ".:lib/mysql-connector-j-9.1.0.jar:setup" setup_database
+```
+
+Alternatively, you can run the DatabaseSetup class directly:
+
+```
+java -cp .;lib/mysql-connector-j-9.1.0.jar src.Util.DatabaseSetup
+```
+
+Or on Unix/macOS:
+```
+java -cp .:lib/mysql-connector-j-9.1.0.jar src.Util.DatabaseSetup
+```
+
+This Java-based setup will:
+- Connect to your MySQL database using JDBC (Java Database Connectivity)
+- Automatically load the MySQL JDBC driver
+- Automatically find the MySQL command-line client in common locations
+- Execute SQL scripts using the MySQL command-line client
 - Guide you through the setup process with clear prompts
-- Ask for your MySQL username and password (password input will be hidden for security)
+- Ask for your MySQL connection details and credentials
 - Execute all SQL scripts in the correct order
 - Verify that all database objects were created successfully
-- Provide feedback on each step of the process
+- Provide detailed feedback on each step of the process
+
+> **Note**: This setup utility requires the MySQL command-line client to be installed, but it will automatically find it in common locations.
 
 > **Note**: When entering your MySQL password, the input will be hidden (no characters will appear as you type) for security reasons. This is normal behavior.
-
-### Option 2: Using MySQL Command Line
-
-If you have the MySQL command line client installed, you can run the following command:
-
-```
-mysql -u root -p storedb < sql/setup/SetupMissingDatabaseObjects.sql
-```
-
-You'll be prompted for your MySQL password. This will create all the necessary database objects.
 
 ### Option 2: Using MySQL Workbench or Another GUI Client
 
